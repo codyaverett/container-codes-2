@@ -1,0 +1,38 @@
+# Keep Docker build context lean
+.git
+.github
+.gitignore
+.dockerignore
+
+# Local env & configs
+.env
+.env.*
+
+# Python caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-*.log*
+
+# Go
+bin/
+dist/
+coverage.out
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+
+# Compose volumes (if any)
+data/
+tmp/
+
+# Note: do NOT ignore src/; it is needed for builds

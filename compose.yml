@@ -1,0 +1,19 @@
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: containers/app/Dockerfile
+    working_dir: /app
+    volumes:
+      - ./src:/app/src:ro
+    env_file:
+      - .env
+    environment:
+      - ENV=${ENV:-dev}
+      - APP_PORT=${APP_PORT:-8000}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    command: python -m src.app.main
+    ports:
+      - "${APP_PORT:-8000}:${APP_PORT:-8000}"
