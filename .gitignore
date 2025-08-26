@@ -34,6 +34,49 @@ coverage.out
 build/
 dist/
 
-# Docker
+# Docker and containers
 .docker/
+docker-compose.override.yml
+docker-compose.override.yaml
+
+# Temporary demo files and directories
+**/demo/temp/
+**/demo/tmp/
+**/temp/
+**/tmp/
+**/.tmp/
+**/scratch/
+**/playground/
+
+# Container volumes and data
+volumes/
+data/
+postgres-data/
+mysql-data/
+redis-data/
+
+# Demo cleanup markers
+.demo-cleanup-done
+.example-completed
+
+# Local configuration overrides
+local.yml
+local.yaml
+*.local.yml
+*.local.yaml
+config.local.*
+
+# SSL certificates and keys (demo purposes only)
+*.crt
+*.key
+*.pem
+*.p12
+*.pfx
+certificates/
+certs/
+ssl/
+
+# Additional logs
+*.log
+logs/
 
