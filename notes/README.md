@@ -1,6 +1,6 @@
 # Container Technologies Deep Dive Notes
 
-This directory contains comprehensive technical notes and insights for the container-codes YouTube channel, focusing on the inner workings of container technologies.
+This directory contains comprehensive technical notes and insights for the ContainerCodes YouTube channel, focusing on the inner workings of container technologies.
 
 ## Structure
 

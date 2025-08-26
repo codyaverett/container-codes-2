@@ -1,6 +1,6 @@
-# Container-Codes YouTube Channel Repository
+# ContainerCodes YouTube Channel Repository
 
-Welcome to the **container-codes** repository! This is the central hub for all content related to our YouTube channel focusing on container technologies, deep-dive technical insights, and practical implementations with Podman, Buildah, Skopeo, and container infrastructure.
+Welcome to the **ContainerCodes** repository! This is the central hub for all content related to our YouTube channel focusing on container technologies, deep-dive technical insights, and practical implementations with Podman, Buildah, Skopeo, and container infrastructure.
 
 ## 🎯 Channel Mission
 
@@ -100,7 +100,7 @@ make down
 
 ## 📺 YouTube Channel
 
-Visit our [YouTube channel](https://youtube.com/@container-codes) for video content covering:
+Visit our [YouTube channel](https://youtube.com/@ContainerCodes) for video content covering:
 - Container internals and how they work
 - Practical development workflows
 - Production deployment strategies
@@ -125,7 +125,7 @@ This repository contains educational content and examples. Please respect copyri
 
 ## 🔗 Links
 
-- [YouTube Channel](https://youtube.com/@container-codes)
+- [YouTube Channel](https://youtube.com/@ContainerCodes)
 - [Podman Documentation](https://docs.podman.io/)
 - [Buildah Documentation](https://buildah.io/)  
 - [Skopeo Documentation](https://github.com/containers/skopeo)

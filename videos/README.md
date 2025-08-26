@@ -1,6 +1,6 @@
-# Container-Codes YouTube Episodes
+# ContainerCodes YouTube Episodes
 
-This directory contains scripts, demo code, and supporting materials for container-codes YouTube channel episodes.
+This directory contains scripts, demo code, and supporting materials for ContainerCodes YouTube channel episodes.
 
 ## Episode Structure
 
