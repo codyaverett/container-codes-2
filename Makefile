@@ -76,10 +76,16 @@ help:
 	@echo -e "  $(GREEN)lint$(RESET)                 Run available linters"
 	@echo -e "  $(GREEN)fmt$(RESET)                  Run available formatters"
 	@echo -e "  $(GREEN)requirements-check$(RESET)   Check system requirements"
+	@echo -e "  $(GREEN)venv-setup$(RESET)           Setup Python virtual environment"
+	@echo -e "  $(GREEN)venv-activate$(RESET)        Show venv activation instructions"
 	@echo
 	@echo -e "$(BLUE)📊 ANALYTICS$(RESET)"
 	@echo -e "  $(GREEN)youtube-setup$(RESET)        Setup YouTube Data API for comment scraping"
 	@echo -e "  $(GREEN)youtube-comments$(RESET)     Scrape YouTube comments (URL=... MAX=200)"
+	@echo -e "  $(GREEN)youtube-captions$(RESET)     Download YouTube captions (URL=... LANG=en)"
+	@echo -e "  $(GREEN)youtube-analyze$(RESET)      Run AI analysis on comments (FILE=comments.json)"
+	@echo -e "  $(GREEN)youtube-complete$(RESET)     Complete analysis: comments + captions + AI (URL=...)"
+	@echo -e "  $(GREEN)youtube-shell$(RESET)        Open analytics container shell"
 	@echo
 	@echo -e "$(BLUE)📊 REPOSITORY MANAGEMENT$(RESET)"
 	@echo -e "  $(GREEN)status$(RESET)               Show repository and content status"
@@ -473,5 +479,132 @@ youtube-comments:
 	  echo -e "  https://www.youtube.com/watch?v=VIDEO_ID"; \
 	  echo -e "  https://youtu.be/VIDEO_ID"; \
 	  echo -e "  VIDEO_ID (just the 11-character ID)"; \
+	fi
+
+## Download YouTube captions (containerized)
+youtube-captions:
+	@if [ -z "$(URL)" ]; then \
+	  echo -e "$(RED)❌ Error: URL parameter is required$(RESET)"; \
+	  echo -e "$(YELLOW)Usage Examples:$(RESET)"; \
+	  echo -e "  make youtube-captions URL='https://www.youtube.com/watch?v=VIDEO_ID'"; \
+	  echo -e "  make youtube-captions URL='VIDEO_ID' LANG=es"; \
+	  echo -e "  make youtube-captions URL='VIDEO_ID' LANG=all"; \
+	  echo -e "$(CYAN)💡 Tip: Default language is 'en' if LANG is not specified$(RESET)"; \
+	  exit 1; \
+	fi
+	@echo -e "$(BLUE)📹 Downloading YouTube captions in container...$(RESET)"
+	@LANG_CODE=$${LANG:-en}; \
+	echo -e "$(YELLOW)Video: $(URL)$(RESET)"; \
+	echo -e "$(YELLOW)Language: $$LANG_CODE$(RESET)"; \
+	./scripts/run-youtube-analytics.sh captions "$(URL)" $$LANG_CODE json
+
+## Run AI analysis on comments (containerized)
+youtube-analyze:
+	@if [ -z "$(FILE)" ]; then \
+	  echo -e "$(RED)❌ Error: FILE parameter is required$(RESET)"; \
+	  echo -e "$(YELLOW)Usage Examples:$(RESET)"; \
+	  echo -e "  make youtube-analyze FILE=comments.json"; \
+	  echo -e "  make youtube-analyze FILE=tmp/video_analysis/comments.json"; \
+	  echo -e "$(CYAN)💡 Tip: Run comment scraping first to get a comments file$(RESET)"; \
+	  exit 1; \
+	fi
+	@echo -e "$(BLUE)🤖 Running AI analysis in container...$(RESET)"
+	@echo -e "$(YELLOW)Analyzing: $(FILE)$(RESET)"
+	@./scripts/run-youtube-analytics.sh analyze "$(FILE)"
+
+## Complete YouTube analysis (comments + captions + AI) (containerized)
+youtube-complete:
+	@if [ -z "$(URL)" ]; then \
+	  echo -e "$(RED)❌ Error: URL parameter is required$(RESET)"; \
+	  echo -e "$(YELLOW)Usage Examples:$(RESET)"; \
+	  echo -e "  make youtube-complete URL='https://www.youtube.com/watch?v=VIDEO_ID'"; \
+	  echo -e "  make youtube-complete URL='VIDEO_ID' MAX=500"; \
+	  echo -e "  make youtube-complete URL='VIDEO_ID' LANG=all"; \
+	  echo -e "$(CYAN)💡 This runs comments + captions + AI analysis$(RESET)"; \
+	  exit 1; \
+	fi
+	@echo -e "$(BLUE)🚀 Running complete YouTube analysis in container...$(RESET)"
+	@MAX_COMMENTS=$${MAX:-200}; \
+	LANG_CODE=$${LANG:-en}; \
+	echo -e "$(YELLOW)Video: $(URL)$(RESET)"; \
+	echo -e "$(YELLOW)Max comments: $$MAX_COMMENTS$(RESET)"; \
+	echo -e "$(YELLOW)Caption language: $$LANG_CODE$(RESET)"; \
+	./scripts/run-youtube-analytics.sh complete "$(URL)" --max-comments $$MAX_COMMENTS --caption-lang $$LANG_CODE
+
+## Open interactive shell in analytics container
+youtube-shell:
+	@echo -e "$(BLUE)🐚 Opening analytics container shell...$(RESET)"
+	@echo -e "$(YELLOW)Available tools inside container:$(RESET)"
+	@echo -e "  - python scripts/youtube-comment-scraper.py"
+	@echo -e "  - python src/app/youtube_caption_downloader.py"
+	@echo -e "  - python src/app/ai_comment_analyzer.py"
+	@echo -e "  - python scripts/youtube-content-scraper.py"
+	@echo -e "$(CYAN)Type 'exit' to leave the container$(RESET)"
+	@./scripts/run-youtube-analytics.sh shell
+
+## Build YouTube analytics container image
+youtube-build:
+	@echo -e "$(BLUE)🔨 Building YouTube Analytics container...$(RESET)"
+	@./scripts/run-youtube-analytics.sh --build shell --help 2>/dev/null || true
+	@echo -e "$(GREEN)✅ YouTube Analytics container built successfully!$(RESET)"
+
+## Setup Python virtual environment for YouTube analytics
+venv-setup:
+	@echo -e "$(BLUE)🐍 Setting up Python virtual environment...$(RESET)"
+	@if [ "$(DEV)" = "true" ]; then \
+	  echo -e "$(YELLOW)Installing with development dependencies...$(RESET)"; \
+	  scripts/setup-venv.sh --dev; \
+	elif [ "$(EXTRAS)" = "true" ]; then \
+	  echo -e "$(YELLOW)Installing with extra analysis dependencies...$(RESET)"; \
+	  scripts/setup-venv.sh --extras; \
+	elif [ "$(ALL)" = "true" ]; then \
+	  echo -e "$(YELLOW)Installing all dependencies...$(RESET)"; \
+	  scripts/setup-venv.sh --dev --extras; \
+	else \
+	  scripts/setup-venv.sh; \
+	fi
+	@echo -e "$(GREEN)✅ Virtual environment ready!$(RESET)"
+	@echo -e "$(CYAN)Activate with: source scripts/activate.sh$(RESET)"
+
+## Show virtual environment activation instructions
+venv-activate:
+	@echo -e "$(BLUE)🐍 Virtual Environment Activation$(RESET)"
+	@echo -e "$(YELLOW)To activate the virtual environment:$(RESET)"
+	@echo -e "  $(GREEN)source scripts/activate.sh$(RESET)        # Bash/Zsh"
+	@if command -v fish >/dev/null 2>&1; then \
+	  echo -e "  $(GREEN)source scripts/activate.fish$(RESET)      # Fish shell"; \
+	fi
+	@echo
+	@echo -e "$(YELLOW)Or run the interactive tool directly:$(RESET)"
+	@echo -e "  $(GREEN)python scripts/run.py$(RESET)              # Interactive menu"
+	@echo
+	@echo -e "$(YELLOW)To deactivate:$(RESET)"
+	@echo -e "  $(GREEN)deactivate$(RESET)"
+	@echo
+	@if [ ! -d ".venv" ]; then \
+	  echo -e "$(RED)❌ Virtual environment not found!$(RESET)"; \
+	  echo -e "$(CYAN)Run 'make venv-setup' first$(RESET)"; \
+	else \
+	  echo -e "$(GREEN)✓ Virtual environment exists at .venv$(RESET)"; \
+	  if [ -n "$${VIRTUAL_ENV}" ]; then \
+	    echo -e "$(GREEN)✓ Currently activated: $${VIRTUAL_ENV}$(RESET)"; \
+	  else \
+	    echo -e "$(YELLOW)⚠ Not currently activated$(RESET)"; \
+	  fi; \
+	fi
+
+## Run interactive YouTube analytics tool
+youtube-interactive:
+	@if [ ! -d ".venv" ]; then \
+	  echo -e "$(RED)❌ Virtual environment not found!$(RESET)"; \
+	  echo -e "$(YELLOW)Setting up virtual environment first...$(RESET)"; \
+	  $(MAKE) venv-setup; \
+	fi
+	@echo -e "$(BLUE)🚀 Starting Interactive YouTube Analytics Tool$(RESET)"
+	@if [ -z "$${VIRTUAL_ENV}" ]; then \
+	  echo -e "$(YELLOW)Activating virtual environment...$(RESET)"; \
+	  . .venv/bin/activate && python scripts/run.py; \
+	else \
+	  python scripts/run.py; \
 	fi
 
