@@ -1,0 +1,60 @@
+version: "3.9"
+
+services:
+  # Original application service  
+  app:
+    build:
+      context: .
+      dockerfile: containers/app/Dockerfile
+      target: production
+    working_dir: /app
+    volumes:
+      - ./src:/app/src:ro
+    env_file:
+      - .env
+    environment:
+      - ENV=${ENV:-dev}
+      - APP_PORT=${APP_PORT:-8000}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    command: python -m src.app.main
+    ports:
+      - "${APP_PORT:-8000}:${APP_PORT:-8000}"
+
+  # YouTube Analytics Tools Service
+  youtube-analytics:
+    build:
+      context: .
+      dockerfile: containers/app/Dockerfile
+      target: production
+    working_dir: /app
+    volumes:
+      # Mount output directory to persist analysis results
+      - ./tmp:/app/tmp
+      - ./data:/app/data
+      # Read-only source code mount for development
+      - ./src:/app/src:ro
+      - ./scripts:/app/scripts:ro
+    env_file:
+      - .env
+    environment:
+      # YouTube Data API key (for comment scraping)
+      - YOUTUBE_API_KEY=${YOUTUBE_API_KEY}
+      # Anthropic API key (for AI analysis) 
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      # Container-specific environment
+      - PYTHONPATH=/app/src
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+    security_opt:
+      # Enable additional security protections
+      - no-new-privileges:true
+    cap_drop:
+      # Drop all capabilities (principle of least privilege)
+      - ALL
+    read_only: true
+    tmpfs:
+      # Allow writes only to specific directories
+      - /tmp:rw,nosuid,nodev,noexec,relatime
+      - /app/tmp:rw,nosuid,nodev,noexec,relatime
+    # Don't start automatically - this is a CLI tool
+    profiles: ["tools"]
