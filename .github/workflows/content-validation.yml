@@ -1,0 +1,135 @@
+name: Content Validation
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - 'videos/**'
+      - 'notes/**'
+      - 'examples/**'
+      - 'scripts/**'
+      - 'templates/**'
+      - '*.md'
+  pull_request:
+    paths:
+      - 'videos/**'
+      - 'notes/**'
+      - 'examples/**'
+      - 'scripts/**'
+      - 'templates/**'
+      - '*.md'
+  workflow_dispatch:
+
+concurrency:
+  group: content-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  content-validation:
+    name: Validate Content Structure
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Install ripgrep
+        run: |
+          curl -LO https://github.com/BurntSushi/ripgrep/releases/download/14.1.0/ripgrep_14.1.0-1_amd64.deb
+          sudo dpkg -i ripgrep_14.1.0-1_amd64.deb
+
+      - name: Check content structure
+        run: make content-validate
+
+      - name: List all content
+        run: make content-list
+
+      - name: Generate content statistics
+        run: make content-stats
+
+      - name: Check markdown formatting
+        run: make format-check
+
+      - name: Validate external links
+        run: make link-check
+        continue-on-error: true
+
+  demo-validation:
+    name: Validate Demo Scripts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: List available demos
+        run: make demo-list
+
+      - name: Test demo scripts permissions
+        run: |
+          echo "Checking demo script permissions..."
+          find videos -name '*.sh' -type f | while read script; do
+            if [ -x "$script" ]; then
+              echo "✓ $script is executable"
+            else
+              echo "✗ $script is NOT executable"
+              chmod +x "$script"
+            fi
+          done
+
+      - name: Validate demo shell scripts
+        run: |
+          echo "Validating shell scripts syntax..."
+          find videos -name '*.sh' -type f -print0 | xargs -0 -n1 bash -n
+
+  complete-validation:
+    name: Complete Validation Suite
+    runs-on: ubuntu-latest
+    needs: [content-validation, demo-validation]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          curl -LO https://github.com/BurntSushi/ripgrep/releases/download/14.1.0/ripgrep_14.1.0-1_amd64.deb
+          sudo dpkg -i ripgrep_14.1.0-1_amd64.deb
+
+      - name: Run complete validation
+        run: make validate-all
+
+      - name: Generate validation report
+        if: always()
+        run: |
+          echo "## Content Validation Report" >> $GITHUB_STEP_SUMMARY
+          echo "### Statistics" >> $GITHUB_STEP_SUMMARY
+          make content-stats >> $GITHUB_STEP_SUMMARY 2>&1 || true
+          echo "### Content List" >> $GITHUB_STEP_SUMMARY
+          make content-list >> $GITHUB_STEP_SUMMARY 2>&1 || true

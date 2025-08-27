@@ -1,0 +1,170 @@
+name: Demo Testing
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - 'videos/**/demo/**'
+      - 'scripts/demo-infrastructure.sh'
+  pull_request:
+    paths:
+      - 'videos/**/demo/**'
+      - 'scripts/demo-infrastructure.sh'
+  workflow_dispatch:
+    inputs:
+      episode:
+        description: 'Episode number to test (e.g., 001)'
+        required: false
+        type: string
+
+concurrency:
+  group: demo-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  list-demos:
+    name: List Available Demos
+    runs-on: ubuntu-latest
+    outputs:
+      demo_dirs: ${{ steps.find_demos.outputs.dirs }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Find demo directories
+        id: find_demos
+        run: |
+          # Find all episode directories with demo folders
+          demos=$(find videos -name 'demo' -type d | sed 's|/demo||' | sed 's|videos/||' | jq -R -s -c 'split("\n")[:-1]')
+          echo "Found demos: $demos"
+          echo "dirs=$demos" >> $GITHUB_OUTPUT
+
+      - name: List all demos
+        run: make demo-list
+
+  test-demo-scripts:
+    name: Test Demo Scripts - ${{ matrix.episode }}
+    runs-on: ubuntu-latest
+    needs: list-demos
+    if: needs.list-demos.outputs.demo_dirs != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        episode: ${{ fromJson(needs.list-demos.outputs.demo_dirs) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Extract episode number
+        id: episode_num
+        run: |
+          # Extract episode number from directory name (e.g., episode-001-title -> 001)
+          episode_num=$(echo "${{ matrix.episode }}" | grep -oE '[0-9]{3}' | head -1)
+          echo "Episode number: $episode_num"
+          echo "num=$episode_num" >> $GITHUB_OUTPUT
+
+      - name: Test demo for ${{ matrix.episode }}
+        run: |
+          echo "Testing demo for episode ${{ steps.episode_num.outputs.num }}"
+          make demo-test EPISODE=${{ steps.episode_num.outputs.num }}
+
+      - name: Check demo script syntax
+        run: |
+          demo_dir="videos/${{ matrix.episode }}/demo"
+          if [ -d "$demo_dir" ]; then
+            echo "Checking shell scripts in $demo_dir"
+            find "$demo_dir" -name '*.sh' -type f -print0 | xargs -0 -n1 bash -n
+          fi
+
+      - name: Validate demo file permissions
+        run: |
+          demo_dir="videos/${{ matrix.episode }}/demo"
+          if [ -d "$demo_dir" ]; then
+            echo "Checking file permissions in $demo_dir"
+            find "$demo_dir" -name '*.sh' -type f | while read script; do
+              if [ ! -x "$script" ]; then
+                echo "Warning: $script is not executable"
+              fi
+            done
+          fi
+
+  container-demo-test:
+    name: Container Demo Integration
+    runs-on: ubuntu-latest
+    services:
+      registry:
+        image: registry:2
+        ports:
+          - 5000:5000
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker/Podman
+        run: |
+          # Ensure Docker is available
+          docker version
+          docker info
+
+      - name: Test security demo if exists
+        run: |
+          if [ -f "videos/episode-000-container-defense/demo/ai-code-isolation.sh" ]; then
+            echo "Testing AI code isolation demo"
+            cd videos/episode-000-container-defense/demo
+            # Run in test mode (non-interactive)
+            bash -n ai-code-isolation.sh
+          fi
+
+      - name: Test container build demos
+        run: |
+          # Find and test any Dockerfile demos
+          find videos -name 'Dockerfile' -type f | while read dockerfile; do
+            dir=$(dirname "$dockerfile")
+            echo "Testing container build in $dir"
+            docker build -t test-demo:latest "$dir"
+            docker run --rm test-demo:latest echo "Container test successful"
+          done
+
+  specific-episode-test:
+    name: Test Specific Episode
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.episode != ''
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Setup demo environment
+        run: |
+          echo "Setting up demo for episode ${{ github.event.inputs.episode }}"
+          make demo-setup EPISODE=${{ github.event.inputs.episode }} || echo "Setup script not found or failed"
+
+      - name: Test demo
+        run: |
+          echo "Testing demo for episode ${{ github.event.inputs.episode }}"
+          make demo-test EPISODE=${{ github.event.inputs.episode }}
+
+      - name: Cleanup demo
+        if: always()
+        run: |
+          echo "Cleaning up demo for episode ${{ github.event.inputs.episode }}"
+          make demo-cleanup EPISODE=${{ github.event.inputs.episode }} || echo "Cleanup script not found or failed"
