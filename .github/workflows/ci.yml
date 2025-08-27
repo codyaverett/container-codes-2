@@ -40,9 +40,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Python
-        if:
-          hashFiles('requirements-dev.txt') != '' || hashFiles('requirements.txt') != '' || hashFiles('pyproject.toml')
-          != ''
+        if: hashFiles('requirements-dev.txt') != '' || hashFiles('requirements.txt') != '' || hashFiles('pyproject.toml') != ''
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
@@ -54,9 +52,7 @@ jobs:
           if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
 
       - name: Set up Node
-        if:
-          hashFiles('package-lock.json') != '' || hashFiles('pnpm-lock.yaml') !=
-          '' || hashFiles('yarn.lock') != ''
+        if: hashFiles('package-lock.json') != '' || hashFiles('pnpm-lock.yaml') != '' || hashFiles('yarn.lock') != ''
         uses: actions/setup-node@v4
         with:
           node-version: "20"
@@ -84,18 +80,29 @@ jobs:
   container-operations:
     name: Container Build and Test
     runs-on: ubuntu-latest
-    if: hashFiles('compose.yml') != '' || hashFiles('Dockerfile') != '' || hashFiles('containers/*/Dockerfile') != ''
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Check for container files
+        id: check-containers
+        run: |
+          if [ -f compose.yml ] || [ -f Dockerfile ] || ls containers/*/Dockerfile 2>/dev/null; then
+            echo "has-containers=true" >> $GITHUB_OUTPUT
+          else
+            echo "has-containers=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Set up Docker Buildx
+        if: steps.check-containers.outputs.has-containers == 'true'
         uses: docker/setup-buildx-action@v3
 
       - name: Build containers
+        if: steps.check-containers.outputs.has-containers == 'true'
         run: make build
 
       - name: Test container startup
+        if: steps.check-containers.outputs.has-containers == 'true'
         run: |
           make up
           sleep 5
