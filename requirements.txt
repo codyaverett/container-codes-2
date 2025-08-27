@@ -1,0 +1,5 @@
+# ContainerCodes YouTube Comment Scraper Dependencies
+# Core dependencies for the YouTube comment scraping tool
+
+google-api-python-client>=2.0.0
+anthropic>=0.40.0

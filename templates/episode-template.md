@@ -17,21 +17,25 @@ Brief description of what this episode covers and what viewers will learn.
 ## Episode Outline
 
 ### Introduction (0:00 - 2:00)
+
 - Welcome and episode overview
 - What we'll cover today
 - Prerequisites check
 
 ### Section 1: [Topic] (2:00 - 8:00)
+
 - Key concepts explanation
 - Demonstration commands
 - Expected output/results
 
 ### Section 2: [Topic] (8:00 - 15:00)
+
 - Advanced concepts
 - Practical examples
 - Common pitfalls
 
 ### Wrap-up (15:00 - 17:00)
+
 - Summary of key points
 - Links to resources
 - Next episode preview
@@ -42,7 +46,7 @@ Brief description of what this episode covers and what viewers will learn.
 # Section 1 commands
 command-example --flag value
 
-# Section 2 commands  
+# Section 2 commands
 another-command --option
 ```
 
@@ -61,25 +65,30 @@ another-command --option
 ## Viewer Questions
 
 ### Common Questions
+
 **Q:** [Question from comments]  
 **A:** [Detailed answer]
 
 ### Follow-up Topics
+
 - Topics requested by viewers
 - Ideas for future episodes
 
 ## Technical Notes
 
 ### Environment Setup
+
 ```bash
 # Commands to set up the demo environment
 ```
 
 ### Cleanup
+
 ```bash
 # Commands to clean up after the demo
 ```
 
 ### Troubleshooting
+
 - Common issues and solutions
 - Error messages and fixes

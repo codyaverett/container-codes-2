@@ -36,6 +36,7 @@ EXAMPLES_DIR := examples
 .PHONY: security-scan vulnerability-check security-demo
 .PHONY: validate-all link-check format-check
 .PHONY: status backup update-deps requirements-check
+.PHONY: youtube-comments youtube-setup
 
 ## Display this help message
 help:
@@ -76,6 +77,10 @@ help:
 	@echo -e "  $(GREEN)fmt$(RESET)                  Run available formatters"
 	@echo -e "  $(GREEN)requirements-check$(RESET)   Check system requirements"
 	@echo
+	@echo -e "$(BLUE)📊 ANALYTICS$(RESET)"
+	@echo -e "  $(GREEN)youtube-setup$(RESET)        Setup YouTube Data API for comment scraping"
+	@echo -e "  $(GREEN)youtube-comments$(RESET)     Scrape YouTube comments (URL=... MAX=200)"
+	@echo
 	@echo -e "$(BLUE)📊 REPOSITORY MANAGEMENT$(RESET)"
 	@echo -e "  $(GREEN)status$(RESET)               Show repository and content status"
 	@echo -e "  $(GREEN)backup$(RESET)               Backup important content"
@@ -87,6 +92,8 @@ help:
 	@echo -e "  make demo-setup EPISODE=001"
 	@echo -e "  make validate-all"
 	@echo -e "  make security-scan"
+	@echo -e "  make youtube-comments URL='https://youtu.be/dQw4w9WgXcQ' MAX=100"
+	@echo -e "  make youtube-comments URL='https://youtu.be/dQw4w9WgXcQ'  # Uses default 200"
 	@echo
 
 ## 📺 CONTENT CREATION COMMANDS
@@ -295,34 +302,176 @@ logs:
 	  $(DC) -f $(COMPOSE_FILE) logs -f $(SERVICE); \
 	fi
 
+## 🧪 DEVELOPMENT COMMANDS
+
+## Run tests for detected stack
 test:
+	@echo -e "$(BLUE)🧪 Running tests...$(RESET)"
 	@set -e; \
 	if command -v pytest >/dev/null 2>&1; then \
-	  echo "Running pytest"; pytest -q; \
+	  echo -e "$(YELLOW)Running pytest$(RESET)"; pytest -q; \
 	elif command -v go >/dev/null 2>&1 && [ -f go.mod ]; then \
-	  echo "Running go tests"; go test ./...; \
+	  echo -e "$(YELLOW)Running go tests$(RESET)"; go test ./...; \
 	elif [ -f package.json ] && command -v npm >/dev/null 2>&1; then \
-	  echo "Running npm test"; npm test --silent; \
+	  echo -e "$(YELLOW)Running npm test$(RESET)"; npm test --silent; \
 	else \
-	  echo "No test runner detected; skipping."; \
+	  echo -e "$(YELLOW)No test runner detected; skipping.$(RESET)"; \
+	fi
+	@echo -e "$(GREEN)✓ Tests complete!$(RESET)"
+
+## Run available linters
+lint:
+	@echo -e "$(BLUE)🔍 Running linters...$(RESET)"
+	@set -e; errors=0; \
+	if command -v ruff >/dev/null 2>&1; then echo -e "$(YELLOW)ruff$(RESET)"; ruff check . || errors=1; fi; \
+	if command -v flake8 >/dev/null 2>&1; then echo -e "$(YELLOW)flake8$(RESET)"; flake8 || errors=1; fi; \
+	if command -v eslint >/dev/null 2>&1 && [ -f package.json ]; then echo -e "$(YELLOW)eslint$(RESET)"; npx -y eslint . || errors=1; fi; \
+	if command -v golangci-lint >/dev/null 2>&1; then echo -e "$(YELLOW)golangci-lint$(RESET)"; golangci-lint run || errors=1; fi; \
+	if [ $$errors -ne 0 ]; then echo -e "$(RED)Linting failed$(RESET)"; exit 1; else echo -e "$(GREEN)✓ Linting passed!$(RESET)"; fi
+
+## Run available formatters
+fmt:
+	@echo -e "$(BLUE)✨ Running formatters...$(RESET)"
+	@if command -v black >/dev/null 2>&1; then echo -e "$(YELLOW)black$(RESET)"; black .; fi; \
+	if command -v isort >/dev/null 2>&1; then echo -e "$(YELLOW)isort$(RESET)"; isort .; fi; \
+	if command -v prettier >/dev/null 2>&1; then echo -e "$(YELLOW)prettier$(RESET)"; prettier -w . --prose-wrap always; fi; \
+	if command -v gofmt >/dev/null 2>&1; then echo -e "$(YELLOW)gofmt$(RESET)"; gofmt -w .; fi
+	@echo -e "$(GREEN)✓ Formatting complete!$(RESET)"
+
+## Check system requirements
+requirements-check:
+	@echo -e "$(BLUE)🔍 Checking system requirements...$(RESET)"
+	@echo -e "$(YELLOW)Container Runtime:$(RESET)"
+	@if command -v podman >/dev/null 2>&1; then \
+	  echo -e "  $(GREEN)✓ Podman: $$(podman --version)$(RESET)"; \
+	elif command -v docker >/dev/null 2>&1; then \
+	  echo -e "  $(GREEN)✓ Docker: $$(docker --version)$(RESET)"; \
+	else \
+	  echo -e "  $(RED)❌ No container runtime found$(RESET)"; \
+	fi
+	@echo -e "$(YELLOW)Python Tools:$(RESET)"
+	@if command -v python3 >/dev/null 2>&1; then \
+	  echo -e "  $(GREEN)✓ Python: $$(python3 --version)$(RESET)"; \
+	else \
+	  echo -e "  $(RED)❌ Python3 not found$(RESET)"; \
+	fi
+	@echo -e "$(YELLOW)Development Tools:$(RESET)"
+	@for tool in git curl make; do \
+	  if command -v $$tool >/dev/null 2>&1; then \
+	    echo -e "  $(GREEN)✓ $$tool$(RESET)"; \
+	  else \
+	    echo -e "  $(RED)❌ $$tool not found$(RESET)"; \
+	  fi; \
+	done
+
+## 📊 REPOSITORY MANAGEMENT COMMANDS
+
+## Show repository and content status
+status:
+	@echo -e "$(BLUE)📊 ContainerCodes Repository Status$(RESET)"
+	@echo -e "$(YELLOW)Repository Info:$(RESET)"
+	@echo -e "  Location: $$(pwd)"
+	@echo -e "  Branch: $$(git branch --show-current 2>/dev/null || echo 'Not a git repo')"
+	@echo -e "  Last commit: $$(git log -1 --format='%h %s' 2>/dev/null || echo 'No commits')"
+	@echo
+	@$(MAKE) --no-print-directory content-stats
+	@echo
+	@echo -e "$(YELLOW)Container Images:$(RESET)"
+	@$(CR) images --format "table {{.Repository}}:{{.Tag}}\t{{.Size}}\t{{.CreatedAt}}" 2>/dev/null | head -5 || echo "  No images found"
+	@echo
+	@echo -e "$(YELLOW)Running Containers:$(RESET)"
+	@$(CR) ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" 2>/dev/null || echo "  No containers running"
+
+## Backup important content
+backup:
+	@echo -e "$(BLUE)💾 Creating backup...$(RESET)"
+	@backup_name="containercodes-backup-$$(date +%Y%m%d-%H%M%S).tar.gz"
+	@tar -czf "$$backup_name" \
+	  --exclude='.git' \
+	  --exclude='node_modules' \
+	  --exclude='__pycache__' \
+	  --exclude='*.pyc' \
+	  --exclude='.DS_Store' \
+	  $(VIDEOS_DIR) $(NOTES_DIR) $(EXAMPLES_DIR) $(TEMPLATES_DIR) $(SCRIPTS_DIR) \
+	  README.md CONTENT_STANDARDS.md SECURITY_PRACTICES.md Makefile
+	@echo -e "$(GREEN)✓ Backup created: $$backup_name$(RESET)"
+
+## Update dependencies and tools
+update-deps:
+	@echo -e "$(BLUE)🔄 Updating dependencies...$(RESET)"
+	@if [ -f requirements.txt ]; then \
+	  echo -e "$(YELLOW)Updating Python dependencies$(RESET)"; \
+	  pip install -U pip && pip install -U -r requirements.txt; \
+	fi
+	@if [ -f package.json ]; then \
+	  echo -e "$(YELLOW)Updating Node.js dependencies$(RESET)"; \
+	  npm update; \
+	fi
+	@if [ -f go.mod ]; then \
+	  echo -e "$(YELLOW)Updating Go dependencies$(RESET)"; \
+	  go get -u ./... && go mod tidy; \
+	fi
+	@echo -e "$(GREEN)✓ Dependencies updated!$(RESET)"
+
+## Prune images/build cache and stop compose
+clean:
+	@echo -e "$(BLUE)🧺 Cleaning up...$(RESET)"
+	@echo -e "$(YELLOW)Stopping containers$(RESET)"
+	@$(DC) -f $(COMPOSE_FILE) down -v >/dev/null 2>&1 || true
+	@echo -e "$(YELLOW)Pruning container images$(RESET)"
+	@$(CR) image prune -f >/dev/null 2>&1 || true
+	@$(CR) builder prune -f >/dev/null 2>&1 || true
+	@echo -e "$(GREEN)✓ Cleanup complete!$(RESET)"
+
+## 📊 ANALYTICS COMMANDS
+
+## Setup YouTube Data API for comment scraping
+youtube-setup:
+	@echo -e "$(BLUE)🔑 YouTube Data API Setup$(RESET)"
+	@echo -e "$(YELLOW)Setting up YouTube comment scraper...$(RESET)"
+	@if python3 $(SCRIPTS_DIR)/youtube-comment-scraper.py --setup; then \
+	  echo -e "$(GREEN)✅ Setup completed successfully!$(RESET)"; \
+	  echo -e "$(CYAN)You can now use: make youtube-comments URL='https://youtu.be/VIDEO_ID'$(RESET)"; \
+	else \
+	  echo -e "$(RED)❌ Setup failed or was cancelled$(RESET)"; \
+	  echo -e "$(YELLOW)💡 Setup Help:$(RESET)"; \
+	  echo -e "  1. Get a YouTube Data API v3 key from https://console.cloud.google.com/"; \
+	  echo -e "  2. Enable the YouTube Data API v3 for your project"; \
+	  echo -e "  3. Set your API key: export YOUTUBE_API_KEY='your_key_here'"; \
+	  echo -e "  4. Or run 'make youtube-setup' again to enter it interactively"; \
+	  echo -e "$(CYAN)Example usage after setup:$(RESET)"; \
+	  echo -e "  make youtube-comments URL='https://www.youtube.com/watch?v=dQw4w9WgXcQ'"; \
+	  echo -e "  make youtube-comments URL='https://youtu.be/dQw4w9WgXcQ' MAX=100"; \
 	fi
 
-lint:
-	@set -e; errors=0; \
-	if command -v ruff >/dev/null 2>&1; then echo "ruff"; ruff check . || errors=1; fi; \
-	if command -v flake8 >/dev/null 2>&1; then echo "flake8"; flake8 || errors=1; fi; \
-	if command -v eslint >/dev/null 2>&1 && [ -f package.json ]; then echo "eslint"; npx -y eslint . || errors=1; fi; \
-	if command -v golangci-lint >/dev/null 2>&1; then echo "golangci-lint"; golangci-lint run || errors=1; fi; \
-	if [ $$errors -ne 0 ]; then echo "Linting failed"; exit 1; else echo "Linting passed"; fi
-
-fmt:
-	@if command -v black >/dev/null 2>&1; then echo "black"; black .; fi; \
-	if command -v isort >/dev/null 2>&1; then echo "isort"; isort .; fi; \
-	if command -v prettier >/dev/null 2>&1; then echo "prettier"; prettier -w .; fi; \
-	if command -v gofmt >/dev/null 2>&1; then echo "gofmt"; gofmt -w .; fi
-
-clean:
-	-@docker image prune -f >/dev/null 2>&1 || true
-	-@docker builder prune -f >/dev/null 2>&1 || true
-	-@$(DC) -f $(COMPOSE_FILE) down -v >/dev/null 2>&1 || true
+## Scrape YouTube comments (default: 200 comments)
+youtube-comments:
+	@if [ -z "$(URL)" ]; then \
+	  echo -e "$(RED)❌ Error: URL parameter is required$(RESET)"; \
+	  echo -e "$(YELLOW)Usage Examples:$(RESET)"; \
+	  echo -e "  make youtube-comments URL='https://www.youtube.com/watch?v=dQw4w9WgXcQ'"; \
+	  echo -e "  make youtube-comments URL='https://youtu.be/dQw4w9WgXcQ' MAX=100"; \
+	  echo -e "  make youtube-comments URL='dQw4w9WgXcQ' MAX=500"; \
+	  echo -e "$(CYAN)💡 Tip: Default limit is 200 comments if MAX is not specified$(RESET)"; \
+	  echo -e "$(CYAN)🔑 Need setup? Run: make youtube-setup$(RESET)"; \
+	  exit 1; \
+	fi
+	@echo -e "$(BLUE)📊 Scraping YouTube comments...$(RESET)"
+	@MAX_COMMENTS=$${MAX:-200}; \
+	echo -e "$(YELLOW)Video: $(URL)$(RESET)"; \
+	echo -e "$(YELLOW)Max comments: $$MAX_COMMENTS$(RESET)"; \
+	if python3 $(SCRIPTS_DIR)/youtube-comment-scraper.py "$(URL)" --max-comments $$MAX_COMMENTS --format json; then \
+	  echo -e "$(GREEN)✅ Comment scraping completed successfully!$(RESET)"; \
+	else \
+	  echo -e "$(RED)❌ Comment scraping failed$(RESET)"; \
+	  echo -e "$(YELLOW)💡 Troubleshooting:$(RESET)"; \
+	  echo -e "  - Check if the video URL is correct and publicly accessible"; \
+	  echo -e "  - Verify your API key is valid: make youtube-setup"; \
+	  echo -e "  - Ensure comments are enabled for this video"; \
+	  echo -e "  - Check your API quota hasn't been exceeded"; \
+	  echo -e "$(CYAN)Example valid URLs:$(RESET)"; \
+	  echo -e "  https://www.youtube.com/watch?v=VIDEO_ID"; \
+	  echo -e "  https://youtu.be/VIDEO_ID"; \
+	  echo -e "  VIDEO_ID (just the 11-character ID)"; \
+	fi
 

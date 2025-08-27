@@ -6,7 +6,10 @@
 
 ## Episode Overview
 
-Dive deep into the security implications of rootless containers and why Podman's architecture represents a fundamental shift in container security. We'll explore real-world attack scenarios, demonstrate privilege escalation differences, and show why enterprises are adopting rootless-first strategies.
+Dive deep into the security implications of rootless containers and why Podman's
+architecture represents a fundamental shift in container security. We'll explore
+real-world attack scenarios, demonstrate privilege escalation differences, and
+show why enterprises are adopting rootless-first strategies.
 
 ## Prerequisites
 
@@ -18,18 +21,21 @@ Dive deep into the security implications of rootless containers and why Podman's
 ## Episode Outline
 
 ### Introduction (0:00 - 2:30)
+
 - Welcome back to ContainerCodes
 - Episode overview: The container security revolution
 - Why rootless matters in 2025 (enterprise adoption stats)
 - What we'll demonstrate today
 
 ### Section 1: The Docker Daemon Problem (2:30 - 7:00)
+
 - Docker daemon architecture and security implications
 - Demonstration: Docker daemon privilege escalation
 - Real-world Docker security incidents
 - Why "Docker group = root" is dangerous
 
 ### Section 2: Podman's Rootless Architecture (7:00 - 13:00)
+
 - Daemonless architecture benefits
 - User namespace mapping demonstration
 - Rootless container filesystem isolation
@@ -37,6 +43,7 @@ Dive deep into the security implications of rootless containers and why Podman's
 - SELinux integration and MCS labels
 
 ### Section 3: Security Comparison Live Demo (13:00 - 18:00)
+
 - Side-by-side privilege escalation attempts
 - Container breakout scenarios
 - File system access differences
@@ -44,12 +51,14 @@ Dive deep into the security implications of rootless containers and why Podman's
 - Resource exhaustion protection
 
 ### Section 4: Production Considerations (18:00 - 21:00)
+
 - When to choose Podman vs Docker
 - Migration strategies from Docker to Podman
 - Enterprise security compliance benefits
 - Performance implications of rootless
 
 ### Wrap-up (21:00 - 22:00)
+
 - Key security takeaways
 - Preview: Episode 3 - Building without Docker (Buildah)
 - Community challenge: Security audit your containers
@@ -57,6 +66,7 @@ Dive deep into the security implications of rootless containers and why Podman's
 ## Demo Commands
 
 ### Section 1: Docker Daemon Risks
+
 ```bash
 # Show docker daemon running as root
 ps aux | grep dockerd
@@ -72,6 +82,7 @@ docker run --rm -v /etc/shadow:/shadow alpine cat /shadow
 ```
 
 ### Section 2: Podman Rootless Security
+
 ```bash
 # Show no daemon running
 ps aux | grep podman  # Should show nothing
@@ -90,6 +101,7 @@ podman run -it --rm -v /:/host alpine chroot /host
 ```
 
 ### Section 3: Security Comparison
+
 ```bash
 # Container breakout attempts
 # Docker (dangerous)
@@ -132,16 +144,21 @@ podman run --pid=host alpine ps aux | head -10
 ## Viewer Questions
 
 ### Common Questions
+
 **Q:** Can I run rootless containers in production?  
-**A:** Absolutely! Many enterprises are moving to rootless-first strategies. Red Hat OpenShift, for example, runs all workloads as rootless by default.
+**A:** Absolutely! Many enterprises are moving to rootless-first strategies. Red
+Hat OpenShift, for example, runs all workloads as rootless by default.
 
 **Q:** What are the limitations of rootless containers?  
-**A:** Main limitations include: no privileged ports (<1024), some volume mounts restrictions, and certain debugging tools may not work the same way.
+**A:** Main limitations include: no privileged ports (<1024), some volume mounts
+restrictions, and certain debugging tools may not work the same way.
 
 **Q:** How do I migrate from Docker to Podman?  
-**A:** Podman is designed to be a drop-in replacement. Most docker commands work with `alias docker=podman`. We'll show migration strategies in detail.
+**A:** Podman is designed to be a drop-in replacement. Most docker commands work
+with `alias docker=podman`. We'll show migration strategies in detail.
 
 ### Follow-up Topics
+
 - Container image security scanning
 - Kubernetes security policies
 - Runtime security monitoring
@@ -150,6 +167,7 @@ podman run --pid=host alpine ps aux | head -10
 ## Technical Notes
 
 ### Environment Setup
+
 ```bash
 # Ensure user namespaces are enabled
 echo 1 | sudo tee /proc/sys/user/max_user_namespaces
@@ -171,6 +189,7 @@ podman system info | grep -i rootless
 ```
 
 ### Security Test Cases
+
 ```bash
 # Test 1: Privilege escalation via volume mount
 echo "Testing Docker privilege escalation..."
@@ -198,6 +217,7 @@ echo "Testing network namespace isolation..."
 ```
 
 ### Cleanup
+
 ```bash
 # Remove test containers
 docker container prune -f
@@ -216,12 +236,15 @@ sudo systemctl stop docker
 **Solution:** Enable with `echo 1 | sudo tee /proc/sys/user/max_user_namespaces`
 
 **Issue: Podman can't access volumes**  
-**Solution:** Use `:Z` flag for SELinux contexts: `podman run -v /host/path:/container/path:Z`
+**Solution:** Use `:Z` flag for SELinux contexts:
+`podman run -v /host/path:/container/path:Z`
 
 **Issue: Docker permission denied**  
-**Solution:** Add user to docker group: `sudo usermod -aG docker $USER` (but understand the security implications!)
+**Solution:** Add user to docker group: `sudo usermod -aG docker $USER` (but
+understand the security implications!)
 
 ### Production Migration Checklist
+
 ```bash
 # 1. Test current Docker commands with Podman
 alias docker=podman

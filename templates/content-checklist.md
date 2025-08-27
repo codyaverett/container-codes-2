@@ -3,6 +3,7 @@
 ## Pre-Production Planning
 
 ### Episode Concept
+
 - [ ] Episode topic aligns with channel mission
 - [ ] Target audience clearly defined (Beginner/Intermediate/Advanced)
 - [ ] Learning objectives are specific and measurable
@@ -10,6 +11,7 @@
 - [ ] Episode builds on previous content appropriately
 
 ### Research Phase
+
 - [ ] Technical accuracy verified with official documentation
 - [ ] Commands tested on target platforms (Linux distributions)
 - [ ] Alternative approaches researched and considered
@@ -17,7 +19,9 @@
 - [ ] Performance implications understood
 
 ### Content Outline
-- [ ] Episode structure follows established format (2min intro, 12min content, 2min wrap-up)
+
+- [ ] Episode structure follows established format (2min intro, 12min content,
+      2min wrap-up)
 - [ ] Key concepts introduced logically
 - [ ] Practical demonstrations planned
 - [ ] Common pitfalls and troubleshooting addressed
@@ -26,6 +30,7 @@
 ## Content Creation
 
 ### Script Development
+
 - [ ] Script follows episode template structure
 - [ ] Technical depth appropriate for stated difficulty level
 - [ ] Practical examples relate to real-world scenarios
@@ -34,6 +39,7 @@
 - [ ] Resource links are current and accessible
 
 ### Demo Preparation
+
 - [ ] All commands tested in clean environment
 - [ ] Setup scripts created and tested
 - [ ] Cleanup scripts created and tested
@@ -42,6 +48,7 @@
 - [ ] Error scenarios planned and tested
 
 ### Supporting Materials
+
 - [ ] References document includes authoritative sources
 - [ ] Viewer questions document anticipates common queries
 - [ ] Demo code is well-commented and documented
@@ -50,6 +57,7 @@
 ## Technical Verification
 
 ### Command Testing
+
 - [ ] All commands tested on primary target OS
 - [ ] Commands tested on alternative distributions (when possible)
 - [ ] Root vs rootless scenarios addressed
@@ -57,6 +65,7 @@
 - [ ] Dependencies clearly listed
 
 ### Security Review
+
 - [ ] No credentials or sensitive data exposed
 - [ ] Security best practices followed
 - [ ] Potentially dangerous commands clearly marked
@@ -64,6 +73,7 @@
 - [ ] Container security implications addressed
 
 ### Accuracy Check
+
 - [ ] Technical facts verified against official documentation
 - [ ] Version numbers and compatibility information current
 - [ ] Screenshot and output examples match current versions
@@ -73,6 +83,7 @@
 ## Production Quality
 
 ### Content Structure
+
 - [ ] Introduction hooks viewer and explains value proposition
 - [ ] Logical flow from basic concepts to advanced topics
 - [ ] Transitions between sections are smooth
@@ -80,6 +91,7 @@
 - [ ] Conclusion summarizes main takeaways
 
 ### Educational Value
+
 - [ ] Concepts explained clearly without jargon (or jargon defined)
 - [ ] Visual demonstrations support verbal explanations
 - [ ] Multiple learning styles accommodated
@@ -87,6 +99,7 @@
 - [ ] Viewers can follow along successfully
 
 ### Engagement Elements
+
 - [ ] Questions posed to encourage viewer interaction
 - [ ] Community challenges or exercises provided
 - [ ] Call-to-action for comments and subscriptions
@@ -96,6 +109,7 @@
 ## Post-Production Review
 
 ### Final Content Check
+
 - [ ] All placeholder text replaced with actual content
 - [ ] Formatting consistent throughout all documents
 - [ ] Code blocks properly formatted
@@ -103,6 +117,7 @@
 - [ ] Spelling and grammar checked
 
 ### Accessibility
+
 - [ ] Content accessible to international audience
 - [ ] Technical terms defined appropriately
 - [ ] Code examples include explanatory comments
@@ -110,6 +125,7 @@
 - [ ] Transcription-friendly language used
 
 ### SEO and Discoverability
+
 - [ ] Title optimized for search and clarity
 - [ ] Description includes relevant keywords
 - [ ] Tags align with container technology topics
@@ -119,6 +135,7 @@
 ## Community Preparation
 
 ### Engagement Strategy
+
 - [ ] Community post template prepared
 - [ ] Common expected questions answered proactively
 - [ ] Follow-up content ideas documented
@@ -126,6 +143,7 @@
 - [ ] Newsletter content prepared
 
 ### Support Resources
+
 - [ ] Troubleshooting guide comprehensive
 - [ ] Community guidelines remind respectful interaction
 - [ ] Response templates prepared for common scenarios
@@ -135,6 +153,7 @@
 ## Quality Metrics
 
 ### Content Metrics
+
 - [ ] Episode length within target range (15-25 minutes)
 - [ ] Information density appropriate for topic complexity
 - [ ] Practical-to-theoretical ratio balanced
@@ -142,6 +161,7 @@
 - [ ] Prerequisite knowledge clearly stated
 
 ### Engagement Metrics (Post-Publication)
+
 - [ ] View duration meets expectations
 - [ ] Comment quality indicates comprehension
 - [ ] Question types show appropriate challenge level
@@ -151,6 +171,7 @@
 ## Technical Standards
 
 ### Code Quality
+
 - [ ] All code examples functional and tested
 - [ ] Commands include error handling where appropriate
 - [ ] Scripts follow shell scripting best practices
@@ -158,6 +179,7 @@
 - [ ] Container images use specific tags (not 'latest')
 
 ### Documentation Standards
+
 - [ ] Markdown formatting consistent
 - [ ] Code syntax highlighting applied correctly
 - [ ] File paths use absolute references
@@ -165,6 +187,7 @@
 - [ ] Version information included where relevant
 
 ### Platform Compatibility
+
 - [ ] Primary focus on Linux (with clear statement)
 - [ ] macOS and Windows considerations noted where applicable
 - [ ] Distribution-specific commands alternatives provided
@@ -174,6 +197,7 @@
 ## Release Checklist
 
 ### Pre-Release
+
 - [ ] Content reviewed by technical peer (when possible)
 - [ ] All checklist items completed
 - [ ] Supporting files uploaded to appropriate repositories
@@ -181,6 +205,7 @@
 - [ ] Analytics tracking ready
 
 ### Release Day
+
 - [ ] Content published according to schedule
 - [ ] Community post shared
 - [ ] Social media promotion executed
@@ -188,6 +213,7 @@
 - [ ] Technical issues addressed promptly
 
 ### Post-Release
+
 - [ ] Community feedback monitored and documented
 - [ ] Technical issues logged and addressed
 - [ ] Requests for follow-up content noted
@@ -197,6 +223,7 @@
 ## Continuous Improvement
 
 ### Episode Retrospective
+
 - [ ] What worked well technically?
 - [ ] What concepts were difficult to explain?
 - [ ] Which demonstrations were most effective?
@@ -204,6 +231,7 @@
 - [ ] How could the next episode in this series be improved?
 
 ### Series Evolution
+
 - [ ] Is the current difficulty progression appropriate?
 - [ ] Are episode lengths optimal for the content type?
 - [ ] Which topics generate the most engagement?
@@ -215,17 +243,21 @@
 ## Quick Reference: Episode Types
 
 ### Deep Dive Episodes (18-25 minutes)
-Focus: Comprehensive exploration of single topic
-Checklist emphasis: Technical accuracy, thorough examples, troubleshooting
+
+Focus: Comprehensive exploration of single topic Checklist emphasis: Technical
+accuracy, thorough examples, troubleshooting
 
 ### Comparison Episodes (15-20 minutes)
-Focus: Side-by-side evaluation of tools/approaches
-Checklist emphasis: Balanced presentation, clear criteria, practical implications
+
+Focus: Side-by-side evaluation of tools/approaches Checklist emphasis: Balanced
+presentation, clear criteria, practical implications
 
 ### Tutorial Episodes (20-30 minutes)
-Focus: Step-by-step implementation guidance
-Checklist emphasis: Followable instructions, error handling, real-world context
+
+Focus: Step-by-step implementation guidance Checklist emphasis: Followable
+instructions, error handling, real-world context
 
 ### News/Update Episodes (10-15 minutes)
-Focus: Current events and technology updates
-Checklist emphasis: Source verification, impact analysis, community relevance
+
+Focus: Current events and technology updates Checklist emphasis: Source
+verification, impact analysis, community relevance
