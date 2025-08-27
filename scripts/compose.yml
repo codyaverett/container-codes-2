@@ -1,17 +1,15 @@
-version: "3.9"
-
 services:
   # Original application service  
   app:
     build:
-      context: .
+      context: ..
       dockerfile: containers/app/Dockerfile
       target: production
     working_dir: /app
     volumes:
-      - ./src:/app/src:ro
+      - ../src:/app/src:ro
     env_file:
-      - .env
+      - ../.env
     environment:
       - ENV=${ENV:-dev}
       - APP_PORT=${APP_PORT:-8000}
@@ -23,19 +21,19 @@ services:
   # YouTube Analytics Tools Service
   youtube-analytics:
     build:
-      context: .
+      context: ..
       dockerfile: containers/app/Dockerfile
       target: production
     working_dir: /app
     volumes:
       # Mount output directory to persist analysis results
-      - ./tmp:/app/tmp
-      - ./data:/app/data
+      - ../tmp:/app/tmp
+      - ../data:/app/data
       # Read-only source code mount for development
-      - ./src:/app/src:ro
-      - ./scripts:/app/scripts:ro
+      - ../src:/app/src:ro
+      - ../scripts:/app/scripts:ro
     env_file:
-      - .env
+      - ../.env
     environment:
       # YouTube Data API key (for comment scraping)
       - YOUTUBE_API_KEY=${YOUTUBE_API_KEY}
