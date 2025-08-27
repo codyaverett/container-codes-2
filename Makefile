@@ -16,7 +16,7 @@ RESET := \033[0m
 
 # Variables
 SERVICE ?=
-COMPOSE_FILE ?= compose.yml
+COMPOSE_FILE ?= scripts/compose.yml
 EPISODE ?=
 NUM ?=
 TITLE ?=

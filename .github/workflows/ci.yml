@@ -87,7 +87,7 @@ jobs:
       - name: Check for container files
         id: check-containers
         run: |
-          if [ -f compose.yml ] || [ -f Dockerfile ] || ls containers/*/Dockerfile 2>/dev/null; then
+          if [ -f scripts/compose.yml ] || [ -f Dockerfile ] || ls containers/*/Dockerfile 2>/dev/null; then
             echo "has-containers=true" >> $GITHUB_OUTPUT
           else
             echo "has-containers=false" >> $GITHUB_OUTPUT
